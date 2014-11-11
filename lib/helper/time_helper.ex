@@ -4,7 +4,6 @@ defmodule TimeHelper do
     @election_timeout_max 10_000 # milliseconds
 
     @heartbeat_frequency   2_000 # milliseconds
-    @heartbeat_timeout     5_000 # milliseconds
 
 
     def generate_random_election_timeout do
@@ -14,10 +13,5 @@ defmodule TimeHelper do
 
     def get_heartbeat_frequency do
         @heartbeat_frequency
-    end
-
-
-    def get_heartbeat_timeout do
-        @heartbeat_timeout
     end
 end
