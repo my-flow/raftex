@@ -7,11 +7,11 @@ defmodule RuleHelper do
             case f.(stateData) do
 
                 {:next_state, _newState, newStateData, timeout} ->
-                    newStateData = %StateData{newStateData | :currentTerm => term}
+                    newStateData = %StateData{newStateData | :currentTerm => term, :votedFor => nil}
                     {:next_state, :follower, newStateData, timeout}
 
                 {:next_state, _newState, newStateData}    ->
-                    newStateData = %StateData{newStateData | :currentTerm => term}
+                    newStateData = %StateData{newStateData | :currentTerm => term, :votedFor => nil}
                     {:next_state, :follower, newStateData}
             end
 

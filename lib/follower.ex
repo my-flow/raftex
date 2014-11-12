@@ -1,16 +1,9 @@
-import Logger
-
-
 defmodule Follower do
 
-    def timeout(stateData = %StateData{}) do
-        Logger.info("#{inspect self}: election timeout")
-        Logger.info("#{inspect self}: incrementing current term from #{stateData.currentTerm} to #{stateData.currentTerm + 1}")
-        newStateData = %StateData{stateData | :currentTerm => stateData.currentTerm + 1}
+    import DebugHelper
 
-        Logger.info("#{inspect self}: transitioning from follower state to candidate state")
-        :gen_fsm.send_event_after(0, :start_election)
-
-        {:next_state, :candidate, newStateData}
+    def receive_vote(_term, _voteGranted, stateData) do
+        d(stateData, :follower, "Ignoring incoming vote result.")
+        {:next_state, :follower, stateData}
     end
 end

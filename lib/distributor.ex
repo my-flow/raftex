@@ -1,8 +1,6 @@
-import Logger
-
-
 defmodule Distributor do
   use ExActor.Strict, export: {:global, :Distributor}
+  import Logger
 
   @number_of_nodes 5
 
@@ -10,7 +8,7 @@ defmodule Distributor do
   # Initialization
 
   definit do
-    Logger.debug "Starting #{__MODULE__}"
+    debug "Starting #{__MODULE__}"
     import Supervisor.Spec, warn: false
 
     children = [

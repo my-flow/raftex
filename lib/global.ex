@@ -1,6 +1,8 @@
 defmodule Global do
 
-    def append_entries(term, _leaderPid, prevLogIndex, prevLogTerm, _logEntries, _leaderCommit, stateData = %StateData{}) do
+    import DebugHelper
+
+    def append_entries(term, _leaderPid, prevLogIndex, prevLogTerm, _logEntries, _leaderCommit, stateData) do
 
         success = term >= stateData.currentTerm && 
             Enum.at(stateData.log, prevLogIndex)[:term] == prevLogTerm

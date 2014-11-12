@@ -12,7 +12,7 @@ use Mix.Config
 
     config :logger, :console,
       level: :debug,
-      format: "$date $time [$level]$levelpad $metadata$message\n",
+      format: "$metadata$message\n",
       metadata: [:user_id]
 
 # It is also possible to import configuration files, relative to this
