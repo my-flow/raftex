@@ -11,8 +11,7 @@ defmodule Raftex.Mixfile do
 
   def application do
     [
-      applications: [:logger],
-      mod: {RaftEx, []}
+      applications: [:logger]
     ]
   end
 
