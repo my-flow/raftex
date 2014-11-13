@@ -27,6 +27,6 @@ defmodule DebugHelper do
 
     defp t(stateData, stateName, message) when is_binary(message) do
         state = String.ljust(String.upcase(to_string stateName), @max_string_length)
-        "#{inspect self} #{state} (#{stateData.currentTerm}): #{message}"
+        "(#{stateData.name}) #{state} t#{stateData.currentTerm}: #{message}"
     end
 end

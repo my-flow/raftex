@@ -15,4 +15,10 @@ defmodule Candidate do
             {:next_state, :candidate, newStateData, TimeHelper.generate_random_election_timeout}
         end
     end
+
+
+    def send_append_entries(stateData) do
+        d(stateData, :candidate, "Ignoring request to append entries.")
+        {:next_state, :candidate, stateData}
+    end
 end

@@ -5,15 +5,15 @@ defmodule Server do
 
     # Initialization
 
-    def start_link(name) do
-        :gen_fsm.start_link(__MODULE__, [name], [])
+    def start_link(number) when is_integer(number) do
+        :gen_fsm.start_link({:global, String.to_atom to_string number}, __MODULE__, number, [])
     end
 
 
-    def init(name) do
-        info "Starting #{inspect __MODULE__} #{name}"
+    def init(number) do
+        info "Starting #{inspect __MODULE__} #{inspect number}"
         :random.seed(:erlang.now)
-        {:ok, :follower, %StateData{}}
+        {:ok, :follower, %StateData{:name => number}}
     end
 
 
@@ -75,6 +75,11 @@ defmodule Server do
     end
 
 
+    def follower(:send_append_entries, stateData) do
+        Follower.send_append_entries(stateData)
+    end
+
+
     # candidate callbacks
 
     def candidate(:timeout, stateData) do
@@ -101,12 +106,12 @@ defmodule Server do
     end
 
 
-    # leader callbacks
-
-    def leader(:send_append_entries, stateData) do
-        Leader.send_append_entries(stateData)
+    def candidate(:send_append_entries, stateData) do
+        Candidate.send_append_entries(stateData)
     end
 
+
+    # leader callbacks
 
     def leader({:request_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
         RuleHelper.check_for_outdated_term(
@@ -122,6 +127,11 @@ defmodule Server do
     end
 
 
+    def leader(:send_append_entries, stateData) do
+        Leader.send_append_entries(stateData)
+    end
+
+
     # global events
 
     def handle_sync_event({:propagate, servers}, _, stateName, stateData) do
@@ -131,9 +141,8 @@ defmodule Server do
 
 
     def handle_event(:resume, stateName, stateData) do
-        election_timeout = TimeHelper.generate_random_election_timeout
-        d(stateData, stateName, "random election timeout: #{inspect election_timeout}")
-        {:next_state, :follower, stateData, election_timeout}
+        d(stateData, stateName, "Resuming node")
+        {:next_state, :follower, stateData, TimeHelper.generate_random_election_timeout}
     end
 
 

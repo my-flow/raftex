@@ -1,7 +1,5 @@
 defmodule Global do
 
-    import DebugHelper
-
     def append_entries(term, _leaderPid, prevLogIndex, prevLogTerm, _logEntries, _leaderCommit, stateData) do
 
         success = term >= stateData.currentTerm && 
