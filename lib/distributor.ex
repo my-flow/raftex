@@ -44,7 +44,7 @@ defmodule Distributor do
   def resume(number) when is_integer(number) and number >= 1 and number <= @number_of_nodes do
 
     case Supervisor.start_child({:global, RaftEx.Distributor.Supervisor}, [number]) do
-      {:ok, pid} ->
+      {:ok, _} ->
         Server.propagate(
           create_name_from_number(number),
           Enum.reject(get_numbers, fn n -> n == number end) |> Enum.map(fn n -> create_name_from_number(n) end)

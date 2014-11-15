@@ -51,7 +51,7 @@ defmodule Server do
 
 
     def terminate(reason, _, stateData) do
-        w(stateData, "terminating with reason #{inspect reason}")
+        t(stateData, "terminating with reason #{inspect reason}")
     end
 
 
@@ -102,7 +102,7 @@ defmodule Server do
 
 
     def candidate({:receive_vote, term, voteGranted}, stateData) do
-        RuleHelper.check_for_outdated_term(term, stateData, &Candidate.receive_vote(term, voteGranted, &1))
+        RuleHelper.check_for_outdated_term(term, stateData, &Candidate.receive_vote(voteGranted, &1))
     end
 
 
@@ -141,7 +141,7 @@ defmodule Server do
 
 
     def handle_event(:resume, stateName, stateData) do
-        d(stateData, stateName, "Resuming node")
+        t(stateData, stateName, "Resuming node")
         {:next_state, :follower, stateData, TimeHelper.generate_random_election_timeout}
     end
 

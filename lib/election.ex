@@ -6,26 +6,26 @@ defmodule Election do
 
 
     def timeout(stateName, stateData) do
-        i(stateData, stateName, "election timeout")
+        t(stateData, stateName, "election timeout")
 
         newStateData = %StateData{stateData | :currentTerm => stateData.currentTerm + 1}
-        i(stateData, stateName, "incrementing current term to #{newStateData.currentTerm}")
+        t(stateData, stateName, "incrementing current term to #{newStateData.currentTerm}")
 
         newStateData = %StateData{newStateData | :votedFor => stateData.name, :voteCount => 1}
-        i(newStateData, stateName, "voting for itself")
+        t(newStateData, stateName, "voting for itself")
 
-        i(newStateData, stateName, "sending out vote requests to other nodes")
+        t(newStateData, stateName, "sending out vote requests to other nodes")
         Enum.each(
             newStateData.allServers,
             &Server.request_vote(&1, newStateData.currentTerm, stateData.name, Enum.count(newStateData.log), List.last(newStateData.log)[:term])
         )
-        i(newStateData, stateName, "transitioning to candidate state")
+        t(newStateData, stateName, "transitioning to candidate state")
         {:next_state, :candidate, newStateData, TimeHelper.generate_random_election_timeout}
     end
 
 
     def request_vote(term, candidateName, lastLogIndex, lastLogTerm, stateName, stateData) do
-        d(stateData, stateName, "Received incoming request to vote for #{inspect candidateName}")
+        t(stateData, stateName, "Received incoming request to vote for #{inspect candidateName}")
 
         myLastLogIndex = Enum.count(stateData.log)
         myLastLogTerm  = List.last(stateData.log)[:term]

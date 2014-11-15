@@ -3,7 +3,7 @@ defmodule Leader do
     import DebugHelper
 
     def send_append_entries(stateData) do
-        i(stateData, :leader, "Sending out append entries (heartbeats) to all servers")
+        t(stateData, :leader, "Sending out append entries (heartbeats) to all servers")
         Enum.each(
             stateData.allServers,
             &Server.append_entries(
@@ -22,7 +22,7 @@ defmodule Leader do
 
 
     def receive_vote(_term, _voteGranted, stateData) do
-        d(stateData, :leader, "Ignoring incoming vote result.")
+        t(stateData, :leader, "Ignoring incoming vote result.")
         {:next_state, :leader, stateData}
     end
 end
