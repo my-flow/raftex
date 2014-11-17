@@ -1,0 +1,11 @@
+.link {
+  stroke: #999;
+  stroke-opacity: .2;
+  cursor: hand;
+}
+
+.caption {
+  font-size: 3em;
+  text-shadow: 0.1em 0.1em 0.2em white;
+  cursor: hand;
+}

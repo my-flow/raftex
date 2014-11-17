@@ -1,4 +1,4 @@
-defmodule RaftEx do
+defmodule Raftex do
   use Application
 
   import Logger
@@ -11,13 +11,13 @@ defmodule RaftEx do
 
     children = []
 
-    opts = [strategy: :one_for_one, name: RaftEx.Supervisor]
+    opts = [strategy: :one_for_one, name: Raftex.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
 
   def run do
-    {:ok, _} = Supervisor.start_child(RaftEx.Supervisor, supervisor(Distributor, []))
+    Supervisor.start_child(Raftex.Supervisor, supervisor(Distributor, []))
     Distributor.run
   end
 

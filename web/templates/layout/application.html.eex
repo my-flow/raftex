@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Hello Raft!</title>
+    <link rel="stylesheet" href="/css/phoenix.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
+
+  </head>
+
+  <body>
+    <div class="container">
+
+      <!-- Static navbar -->
+      <nav class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Raft in D3</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="javascript:$.post('/nodes/start'); javascript:updateData();">Start</a></li>
+              <li><a href="javascript:updateData()">Update</a></li>
+              <li><a href="javascript:$.ajax({url: '/leaders/kill/all', type: 'DELETE', success: function() { updateData(); }});">Kill Leaders</a></li>
+              <li><a href="javascript:$.ajax({url: '/followers/kill/any', type: 'DELETE', success: function() { updateData(); }});">Kill Follower</a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Resume <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="javascript:$.post('/nodes/resume', {numbers: [1, 2]}); javascript:updateData();">Resume servers {1, 2}</a></li>
+                  <li><a href="javascript:$.post('/nodes/resume', {numbers: [3, 4, 5]}); javascript:updateData();">Resume servers {3, 4, 5}</a></li>
+                  <li class="divider"></li>
+                  <li><a href="javascript:$.post('/nodes/resume', {numbers: [1, 2, 3, 4, 5]}); javascript:updateData();">Resume all servers</a></li>
+                </ul>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
+
+      <%= @inner %>
+
+    </div> <!-- /container -->
+  </body>
+</html>

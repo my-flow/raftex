@@ -1,4 +1,4 @@
-RaftEx
+Raftex
 ======
 
 An implementation of the [Raft Consensus Algorithm](https://raftconsensus.github.io) in Elixir/Erlang using distributed finite state machines (`gen_fsm`).
@@ -15,7 +15,7 @@ From the [official website](https://raftconsensus.github.io):
 1. Clone the repository with `git clone git@github.com:my-flow/raftex.git`.
 2. Install the required dependencies with `mix deps.get`.
 3. Start Elixir's interactive shell with `iex -S mix`.
-4. Run a simulation with 5 distributed nodes: `iex(1)> RaftEx.run`
+4. Run a simulation with 5 distributed nodes: `iex(1)> Raftex.run`
 
 
 ## Copyright & License

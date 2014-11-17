@@ -16,7 +16,7 @@ defmodule Distributor do
       worker(Server, [], restart: :temporary)
     ]
 
-    opts = [strategy: :simple_one_for_one, name: {:global, RaftEx.Distributor.Supervisor}]
+    opts = [strategy: :simple_one_for_one, name: {:global, Raftex.Distributor.Supervisor}]
     Supervisor.start_link(children, opts)
   end
 
@@ -29,7 +29,7 @@ defmodule Distributor do
   # Launch
 
   def run do
-    get_numbers |> Enum.each(&Supervisor.start_child({:global, RaftEx.Distributor.Supervisor}, [&1]))
+    get_numbers |> Enum.each(&Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [&1]))
     get_numbers |> Enum.each(
       &Server.propagate(
         create_name_from_number(&1),
@@ -43,7 +43,7 @@ defmodule Distributor do
 
   def resume(number) when is_integer(number) and number >= 1 and number <= @number_of_nodes do
 
-    case Supervisor.start_child({:global, RaftEx.Distributor.Supervisor}, [number]) do
+    case Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [number]) do
       {:ok, _} ->
         Server.propagate(
           create_name_from_number(number),
@@ -78,7 +78,7 @@ defmodule Distributor do
 
 
   def get_all_servers do
-    Supervisor.which_children({:global, RaftEx.Distributor.Supervisor}) |>
+    Supervisor.which_children({:global, Raftex.Distributor.Supervisor}) |>
       Enum.map(fn {_, pid, _, _} -> pid end) |> Enum.map(&:sys.get_state(&1))
   end
 
@@ -94,7 +94,7 @@ defmodule Distributor do
 
 
   defp get_children_pids do
-    Enum.map(Supervisor.which_children({:global, RaftEx.Distributor.Supervisor}), fn {_, pid, _, _} -> pid end)
+    Enum.map(Supervisor.which_children({:global, Raftex.Distributor.Supervisor}), fn {_, pid, _, _} -> pid end)
   end
 
 end

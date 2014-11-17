@@ -1,0 +1,118 @@
+<div id="animation"></div>
+
+<script>
+
+"use strict";
+
+var width  = 820,
+    height = 505;
+
+var color = d3.scale.category20();
+var previousNodes = [],
+    nodes = [],
+    links = [];
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links(links)
+    .linkDistance(200)
+    .size([width, height])
+    .on("tick", tick);
+
+var svg = d3.select("#animation")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var node = svg.selectAll(".node"),
+    link = svg.selectAll(".link");
+
+function tick() {
+  node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+}
+
+updateData();
+
+function updateData() {
+
+  d3.json("/nodes/info", function(error, graph) {
+
+    var length = previousNodes.length;
+    for (var i = 0; i < length; i++) {
+      index = nodeIndexOf(graph.nodes, previousNodes[i])
+      if (index < 0 || JSON.stringify(graph.nodes[index]) !== JSON.stringify(previousNodes[i])) {
+        // existing nodes was removed or has changed
+        nodes.splice(nodeIndexOf(nodes, previousNodes[i]), 1);
+      }
+    }
+    var length = graph.nodes.length;
+    for (var i = 0; i < length; i++) {
+      var index = nodeIndexOf(previousNodes, graph.nodes[i])
+      if ((index < 0 || JSON.stringify(previousNodes[index]) !== JSON.stringify(graph.nodes[i]))) {
+        // new node was added or values have changed
+        nodes.push(jQuery.extend(true, {}, graph.nodes[i]));
+      }
+    }
+
+    links.splice(0, links.length)
+    var length = graph.links.length;
+    for (var i = 0; i < length; i++) {
+      links[i] = graph.links[i];
+    }
+
+    link = link.data(force.links())
+    link
+      .enter()
+      .insert("line", ".link")
+      .attr("class", "link");
+    link.exit().remove();
+
+    node = node.data(force.nodes())
+    node.enter().append("g")
+    node
+      .append("image")
+      .attr("xlink:href", mapImage)
+      .attr("x", -50)
+      .attr("y", -50)
+      .attr("width", 100)
+      .attr("height", 100);
+    node
+      .append("text")
+      .attr("dx", "-0.2em")
+      .attr("dy", ".35em")
+      .attr("class", "caption")
+      .text(function(d) { return d.name });
+    node.exit().remove();
+
+    previousNodes = graph.nodes
+
+    force.start();
+  });
+}
+
+
+function nodeIndexOf(nodes, node) {
+  var length = nodes.length
+  for (var i = 0; i < length; i++) {
+    if (nodes[i] !== undefined && node.id !== undefined && nodes[i].id === node.id) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function mapImage(node) {
+  if (node.state == "follower") {
+    return "https://cdn0.iconfinder.com/data/icons/ie_Bright/128/database_blue.png";
+  } else if (node.state == "candidate") {
+    return "https://cdn0.iconfinder.com/data/icons/ie_Bright/128/database_green.png";
+  } else if (node.state == "leader") {
+    return "https://cdn0.iconfinder.com/data/icons/ie_Bright/128/database_red.png";
+  }
+}
+</script>
