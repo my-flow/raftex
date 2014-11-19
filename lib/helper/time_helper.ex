@@ -1,7 +1,7 @@
 defmodule TimeHelper do
 
-    @election_timeout_min  5_000 # milliseconds
-    @election_timeout_max 10_000 # milliseconds
+    @election_timeout_min  4_000 # milliseconds
+    @election_timeout_max  5_000 # milliseconds
 
     @heartbeat_frequency   2_000 # milliseconds
 

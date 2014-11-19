@@ -37,6 +37,7 @@ function tick() {
 }
 
 updateData();
+setInterval(function() { updateData(); }, 5000);
 
 function updateData() {
 

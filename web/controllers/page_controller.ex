@@ -9,8 +9,8 @@ defmodule Raftex.PageController do
   end
 
 
-  def start(conn, _params) do
-    text conn, inspect Raftex.run
+  def start(conn, params) do
+    text conn, inspect Distributor.start String.to_integer params["number"]
   end
 
 

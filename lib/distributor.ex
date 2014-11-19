@@ -4,8 +4,6 @@ defmodule Distributor do
   import Logger
   import Supervisor.Spec
 
-  @number_of_nodes 5
-
 
   # Initialization
 
@@ -28,26 +26,29 @@ defmodule Distributor do
 
   # Launch
 
-  def run do
-    get_numbers |> Enum.each(&Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [&1]))
-    get_numbers |> Enum.each(
+  def start(number_of_nodes) when is_integer(number_of_nodes) and number_of_nodes > 0 do
+    Enum.each(get_children_pids, &(true = Process.exit(&1, :shutdown)))
+
+    range = 1..number_of_nodes
+    range |> Enum.each(&Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [&1]))
+    range |> Enum.each(
       &Server.propagate(
         create_name_from_number(&1),
-        Enum.reject(get_numbers, fn n -> n == &1 end) |> Enum.map(fn n -> create_name_from_number(n) end))
+        Enum.reject(range, fn n -> n == &1 end) |> Enum.map(fn n -> create_name_from_number(n) end))
       )
-    get_numbers |> Enum.each(&Server.resume(create_name_from_number(&1)))
+    range |> Enum.each(&Server.resume(create_name_from_number(&1)))
   end
 
 
   # Manipulate the nodes
 
-  def resume(number) when is_integer(number) and number >= 1 and number <= @number_of_nodes do
+  def resume(number) when is_integer(number) and number >= 1 do
 
     case Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [number]) do
       {:ok, _} ->
         Server.propagate(
           create_name_from_number(number),
-          Enum.reject(get_numbers, fn n -> n == number end) |> Enum.map(fn n -> create_name_from_number(n) end)
+          Enum.reject(1..Enum.count(get_children_pids), fn n -> n == number end) |> Enum.map(fn n -> create_name_from_number(n) end)
         )
         Server.resume(create_name_from_number(number))
       other ->
@@ -80,11 +81,6 @@ defmodule Distributor do
   def get_all_servers do
     Supervisor.which_children({:global, Raftex.Distributor.Supervisor}) |>
       Enum.map(fn {_, pid, _, _} -> pid end) |> Enum.map(&:sys.get_state(&1))
-  end
-
-
-  defp get_numbers do
-    1..@number_of_nodes
   end
 
 
