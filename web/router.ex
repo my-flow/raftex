@@ -3,7 +3,7 @@ defmodule Raftex.Router do
 
   scope "/" do
     # Use the default browser stack.
-    pipe_through :browser
+    # pipe_through :browser
 
     get  "/",                     Raftex.PageController,  :index,             as: :pages
     post "/nodes/start",          Raftex.PageController,  :start,             as: :pages

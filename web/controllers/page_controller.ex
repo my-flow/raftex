@@ -5,7 +5,7 @@ defmodule Raftex.PageController do
 
 
   def index(conn, _params) do
-    render conn, "index"
+    render conn, "index.html"
   end
 
 
@@ -39,11 +39,11 @@ defmodule Raftex.PageController do
       end
     )
 
-    links = Enum.with_index(nodes) |> Enum.flat_map(
+    links = Enum.with_index(nodes) |> Enum.filter(fn {n, _} -> n.state == :follower end) |> Enum.flat_map(
       fn {n, i} ->
         Enum.reject(
           Enum.with_index(nodes),
-          fn {m, j} -> m == n || j < i end
+          fn {m, _} -> m.state == :follower end
         )
         |> Enum.map(fn {m, j} -> %{:source => i, :target => j} end)
       end)
@@ -54,10 +54,10 @@ defmodule Raftex.PageController do
   end
 
   def not_found(conn, _params) do
-    render conn, "not_found"
+    render conn, "not_found.html"
   end
 
   def error(conn, _params) do
-    render conn, "error"
+    render conn, "error.html"
   end
 end

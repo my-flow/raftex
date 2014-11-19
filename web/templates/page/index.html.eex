@@ -4,8 +4,8 @@
 
 "use strict";
 
-var width  = 820,
-    height = 505;
+var width  = 700,
+    height = 550;
 
 var color = d3.scale.category20();
 var previousNodes = [],
@@ -15,6 +15,7 @@ var previousNodes = [],
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
+    .charge(-900)
     .linkDistance(200)
     .size([width, height])
     .on("tick", tick);
@@ -36,6 +37,7 @@ function tick() {
       .attr("y2", function(d) { return d.target.y; });
 }
 
+$.post('/nodes/start/?number=5');
 updateData();
 setInterval(function() { updateData(); }, 5000);
 
@@ -56,7 +58,7 @@ function updateData() {
       var index = nodeIndexOf(previousNodes, graph.nodes[i])
       if ((index < 0 || JSON.stringify(previousNodes[index]) !== JSON.stringify(graph.nodes[i]))) {
         // new node was added or values have changed
-        nodes.push(jQuery.extend(true, {}, graph.nodes[i]));
+        nodes.splice(i, 0, jQuery.extend(true, {}, graph.nodes[i]));
       }
     }
 

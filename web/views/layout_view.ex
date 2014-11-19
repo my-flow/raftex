@@ -1,4 +1,4 @@
 defmodule Raftex.LayoutView do
-  use Raftex.Views
+  use Raftex.View
 
 end

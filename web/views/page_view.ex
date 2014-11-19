@@ -1,4 +1,4 @@
 defmodule Raftex.PageView do
-  use Raftex.Views
+  use Raftex.View
 
 end
