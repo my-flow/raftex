@@ -14,9 +14,16 @@ From the [official website](https://raftconsensus.github.io):
 
 1. Clone the repository with `git clone git@github.com:my-flow/raftex.git`.
 2. Install the required dependencies with `mix deps.get`.
-3. Start Elixir's interactive shell with `iex -S mix`.
-4. Run a simulation with 5 distributed nodes: `iex(1)> Raftex.run`
 
+## Watch simulation in a browser
+
+1. Start web server with `mix phoenix.start`
+2. Open a web browser and visit URL _http://localhost:4000_
+
+## Watch simulation in a terminal
+
+1. Start Elixir's interactive shell with `iex -S mix`.
+2. Run a simulation with 5 distributed nodes: `iex(1)> Raftex.run`
 
 ## Copyright & License
 
