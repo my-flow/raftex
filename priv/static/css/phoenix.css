@@ -20,6 +20,17 @@ body > .container {
   padding-left: 15px;
 }
 
+.title {
+  font-size: 2.5em;
+  text-weight: bold;
+  text-shadow: 0.1em 0.1em 0.2em white;
+  z-index: 2;
+}
+
+.icon {
+  z-index: 0;
+}
+
 .link {
   stroke: #999;
   stroke-opacity: .2;
@@ -27,7 +38,7 @@ body > .container {
 }
 
 .caption {
-  font-size: 3em;
+  font-size: 2em;
   text-shadow: 0.1em 0.1em 0.2em white;
   cursor: hand;
 }

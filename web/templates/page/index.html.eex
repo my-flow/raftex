@@ -16,7 +16,8 @@ var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
     .charge(-900)
-    .linkDistance(200)
+    .linkDistance(180)
+    .linkStrength(0.07)
     .size([width, height])
     .on("tick", tick);
 
@@ -38,17 +39,32 @@ function tick() {
 }
 
 $.post('/nodes/start/?number=5');
-updateData();
 setInterval(function() { updateData(); }, 5000);
+restart();
+
+function restart() {
+  previousNodes = [];
+  nodes.splice(0, nodes.length);
+  updateData();
+}
 
 function updateData() {
 
   d3.json("/nodes/info", function(error, graph) {
 
+    svg.selectAll("text").remove()
+    if (graph.total !== null) {
+      svg.append("text")
+        .attr("x", 350)
+        .attr("y", 50)
+        .attr("class", "title")
+        .attr("text-anchor", "middle")
+        .text("Raft Consensus Algorithm with " + graph.total + " servers");
+    }
+
     var length = previousNodes.length;
     for (var i = 0; i < length; i++) {
-      index = nodeIndexOf(graph.nodes, previousNodes[i])
-      if (index < 0 || JSON.stringify(graph.nodes[index]) !== JSON.stringify(previousNodes[i])) {
+      if (nodeIndexOf(graph.nodes, previousNodes[i]) < 0) {
         // existing nodes was removed or has changed
         nodes.splice(nodeIndexOf(nodes, previousNodes[i]), 1);
       }
@@ -56,9 +72,14 @@ function updateData() {
     var length = graph.nodes.length;
     for (var i = 0; i < length; i++) {
       var index = nodeIndexOf(previousNodes, graph.nodes[i])
-      if ((index < 0 || JSON.stringify(previousNodes[index]) !== JSON.stringify(graph.nodes[i]))) {
-        // new node was added or values have changed
+      if (index < 0) {
+        // new node was added
         nodes.splice(i, 0, jQuery.extend(true, {}, graph.nodes[i]));
+      } else if (JSON.stringify(previousNodes[index]) !== JSON.stringify(graph.nodes[i])) {
+        // values of node have changed
+        for (var k in graph.nodes[i]) {
+          nodes[i][k] = graph.nodes[i][k];
+        }
       }
     }
 
@@ -71,16 +92,19 @@ function updateData() {
     link = link.data(force.links())
     link
       .enter()
-      .insert("line", ".link")
+      .insert("line")
       .attr("class", "link");
     link.exit().remove();
 
     node = node.data(force.nodes())
+    node.call(force.drag);
+
     node.enter().append("g")
 
     node.selectAll("image").remove()
     node
       .append("image")
+      .attr("class", "icon")
       .attr("xlink:href", mapImage)
       .attr("x", -50)
       .attr("y", -50)

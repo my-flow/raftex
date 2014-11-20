@@ -1,5 +1,5 @@
 defmodule Distributor do
-  use ExActor.Strict, export: {:global, :Distributor}
+  use ExActor.Strict, export: :Distributor
 
   import Logger
   import Supervisor.Spec
@@ -7,7 +7,7 @@ defmodule Distributor do
 
   # Initialization
 
-  def start_link do
+  definit do
     debug "Starting #{__MODULE__}"
 
     children = [
@@ -15,18 +15,14 @@ defmodule Distributor do
     ]
 
     opts = [strategy: :simple_one_for_one, name: {:global, Raftex.Distributor.Supervisor}]
-    Supervisor.start_link(children, opts)
-  end
-
-
-  definit do
+    {:ok, _} = Supervisor.start_link(children, opts)
     initial_state nil
   end
 
 
   # Launch
 
-  def start(number_of_nodes) when is_integer(number_of_nodes) and number_of_nodes > 0 do
+  defcall start(number_of_nodes), when: is_integer(number_of_nodes) and number_of_nodes > 0 do
     Enum.each(get_children_pids, &(true = Process.exit(&1, :shutdown)))
 
     range = 1..number_of_nodes
@@ -34,26 +30,33 @@ defmodule Distributor do
     range |> Enum.each(
       &Server.propagate(
         create_name_from_number(&1),
-        Enum.reject(range, fn n -> n == &1 end) |> Enum.map(fn n -> create_name_from_number(n) end))
+        Enum.reject(range, fn n -> n == &1 end) |> Enum.map(fn n -> create_name_from_number(n) end)
       )
+    )
     range |> Enum.each(&Server.resume(create_name_from_number(&1)))
+    set_and_reply number_of_nodes, :ok
+  end
+
+
+  defcall get_number_of_nodes, state: number_of_nodes do
+    reply number_of_nodes
   end
 
 
   # Manipulate the nodes
 
-  def resume(number) when is_integer(number) and number >= 1 do
-
+  defcall resume(number), when: is_integer(number) and number >= 1, state: number_of_nodes do
     case Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [number]) do
       {:ok, _} ->
         Server.propagate(
           create_name_from_number(number),
-          Enum.reject(1..Enum.count(get_children_pids), fn n -> n == number end) |> Enum.map(fn n -> create_name_from_number(n) end)
+          Enum.reject(1..number_of_nodes, fn n -> n == number end) |> Enum.map(fn n -> create_name_from_number(n) end)
         )
         Server.resume(create_name_from_number(number))
       other ->
         other
     end
+    reply :ok
   end
 
 
@@ -73,7 +76,7 @@ defmodule Distributor do
     first = Enum.find(get_children_pids, &({stateName, _} = :sys.get_state(&1)) && stateName == :follower)
     case first do
       nil -> :error
-      pid -> Process.exit(pid, :kill) && :ok
+      pid -> Process.exit(pid, :kill)
     end
   end
 

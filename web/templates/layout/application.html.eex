@@ -40,9 +40,15 @@
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Start <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                  <li><a href="javascript:$.post('/nodes/start/?number=5'); javascript:updateData();">Start 5 Nodes</a></li>
-                  <li><a href="javascript:$.post('/nodes/start/?number=7'); javascript:updateData();">Start 7 Nodes</a></li>
-                  <li><a href="javascript:$.post('/nodes/start/?number=9'); javascript:updateData();">Start 9 Nodes</a></li>
+                  <li><a href="javascript:$.post('/nodes/start/?number=5'); javascript:restart();">Start 5 Nodes</a></li>
+                  <li><a href="javascript:$.post('/nodes/start/?number=7'); javascript:restart();">Start 7 Nodes</a></li>
+                  <li><a href="javascript:$.post('/nodes/start/?number=9'); javascript:restart();">Start 9 Nodes</a></li>
+                </ul>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Shutdown <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a onclick="$.ajax({url: '/leaders/kill/all', type: 'DELETE', success: function() { updateData(); }});">Shutdown the Leader(s)</a></li>
+                  <li><a onclick="$.ajax({url: '/followers/kill/any', type: 'DELETE', success: function() { updateData(); }});">Shutdown a Follower</a></li>
                 </ul>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Resume <span class="caret"></span></a>
@@ -51,12 +57,6 @@
                   <li><a href="javascript:$.post('/nodes/resume', {numbers: [3, 4, 5]}); javascript:updateData();">Resume servers 3 to 5</a></li>
                   <li class="divider"></li>
                   <li><a href="javascript:$.post('/nodes/resume', {numbers: [1, 2, 3, 4, 5]}); javascript:updateData();">Resume servers 1 to 5</a></li>
-                </ul>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Shutdown <span class="caret"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                  <li><a href="javascript:$.ajax({url: '/leaders/kill/all', type: 'DELETE', success: function() { updateData(); }});">Shutdown the Leader(s)</a></li>
-                  <li><a href="javascript:$.ajax({url: '/followers/kill/any', type: 'DELETE', success: function() { updateData(); }});">Shutdown a Follower</a></li>
                 </ul>
             </ul>
             <ul class="nav navbar-nav navbar-right">

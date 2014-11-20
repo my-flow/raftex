@@ -87,11 +87,6 @@ defmodule Server do
     end
 
 
-    def candidate(:start_election, stateData) do
-        Candidate.start_election(stateData)
-    end
-
-
     def candidate({:request_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
         RuleHelper.check_for_outdated_term(
             term,

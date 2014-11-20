@@ -30,6 +30,8 @@ defmodule Raftex.PageController do
 
 
   def info(conn, _params) do
+    total = Distributor.get_number_of_nodes
+
     nodes = Distributor.get_all_servers |> Enum.map(
       fn {name, data} -> 
         %{
@@ -40,17 +42,17 @@ defmodule Raftex.PageController do
     )
 
     links = Enum.with_index(nodes) |> Enum.filter(fn {n, _} -> n.state == :follower end) |> Enum.flat_map(
-      fn {n, i} ->
+      fn {_, i} ->
         Enum.reject(
           Enum.with_index(nodes),
           fn {m, _} -> m.state == :follower end
         )
-        |> Enum.map(fn {m, j} -> %{:source => i, :target => j} end)
+        |> Enum.map(fn {_, j} -> %{:source => i, :target => j} end)
       end)
       |> Enum.sort(&(&1.source < &2.source || (&1.source == &2.source && &1.target < &2.target))
     )
 
-    text conn, JSEX.encode!(%{:nodes => nodes, :links => links})
+    text conn, JSEX.encode!(%{:total => total, :nodes => nodes, :links => links})
   end
 
   def not_found(conn, _params) do
