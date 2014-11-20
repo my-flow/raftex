@@ -21,10 +21,10 @@
   <body>
     <div class="container">
 
-    <a href="https://github.com/my-flow/raftex"><img style="position: absolute; top: 0; left: 0; border: 0; z-index: 1;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
+      <a href="https://github.com/my-flow/raftex"><img style="position: absolute; top: 0; left: 0; border: 0; z-index: 1;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
 
       <!-- Static navbar -->
-      <nav class="navbar navbar-default" role="navigation">
+      <nav class="navbar navbar-default translucent" role="navigation">
         <div class="container-fluid">
           <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -70,7 +70,7 @@
 
     </div> <!-- /container -->
 
-    <footer class="footer">
+    <footer class="footer translucent">
       <div class="container">
         <p class="text-muted">Visualization of the <a href="https://raftconsensus.github.io">The Raft Consensus Algorithm</a>. Core logic written in <a href="http://elixir-lang.org">Elixir</a>/<a href="http://www.erlang.org/">Erlang</a>. Made with <i class='fa fa-heart' style="color: red;"></i> at <a href="http://www.hackerschool.com">Hacker School</a>, NYC.</p>
       </div>
