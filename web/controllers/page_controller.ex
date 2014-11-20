@@ -34,18 +34,21 @@ defmodule Raftex.PageController do
 
     nodes = Distributor.get_all_servers |> Enum.map(
       fn {name, data} -> 
-        %{
+        map = %{
           :name => data.name, 
           :id => data.name - 1, 
-          :state => name}
+          :state => name,
+          :voteCount => if name == :candidate do data.voteCount else nil end
+        }
+        map
       end
     )
 
     links = Enum.with_index(nodes) |> Enum.filter(fn {n, _} -> n.state == :follower end) |> Enum.flat_map(
       fn {_, i} ->
-        Enum.reject(
+        Enum.filter(
           Enum.with_index(nodes),
-          fn {m, _} -> m.state == :follower end
+          fn {m, _} -> m.state == :leader end
         )
         |> Enum.map(fn {_, j} -> %{:source => i, :target => j} end)
       end)

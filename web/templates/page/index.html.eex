@@ -113,10 +113,23 @@ function updateData() {
     node.selectAll("text").remove()
     node
       .append("text")
-      .attr("dx", "-0.2em")
+      .attr("text-anchor", "middle")
       .attr("dy", ".35em")
       .attr("class", "caption")
       .text(function(d) { return d.name });
+    node
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "2em")
+      .attr("class", "subcaption")
+      .text(function(d) {
+        if (d.voteCount == null) {
+          return "";
+        } else {
+          return d.voteCount + " / " + graph.total + " votes"
+        }
+      });
+
     node.exit().remove();
 
     previousNodes = graph.nodes

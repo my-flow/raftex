@@ -50,6 +50,12 @@ body > .container {
   cursor: hand;
 }
 
+.subcaption {
+  font-size: 1em;
+  text-shadow: 0.1em 0.1em 0.2em white;
+  cursor: hand;
+}
+
 .footer {
   position: relative;
   bottom: 0;
