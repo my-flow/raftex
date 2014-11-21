@@ -14,9 +14,10 @@ defmodule DebugHelper do
 
     def t(stateData, stateName \\ "", message) when is_binary(message) do
         state = String.ljust(String.upcase(to_string stateName), @max_string_length)
+        {_, name} = stateData.name
         IO.puts(
-            get_color(to_string(stateData.name)) <>
-            "(#{stateData.name}) #{state} t#{stateData.currentTerm}: #{message}" <>
+            get_color(to_string name) <>
+            "(#{to_string name}) #{state} t#{stateData.currentTerm}: #{message}" <>
             IO.ANSI.default_background <> IO.ANSI.default_color
         )
     end

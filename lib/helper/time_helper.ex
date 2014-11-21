@@ -14,4 +14,9 @@ defmodule TimeHelper do
     def get_heartbeat_frequency do
         @heartbeat_frequency
     end
+
+
+    def get_election_timeout_max do
+        @election_timeout_max
+    end
 end

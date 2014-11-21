@@ -1,5 +1,5 @@
 defmodule Distributor do
-  use ExActor.Strict, export: :Distributor
+  use ExActor.Strict
 
   import Logger
   import Supervisor.Spec
@@ -7,83 +7,99 @@ defmodule Distributor do
 
   # Initialization
 
-  definit do
+  defstart start_link(args), gen_server_opts: args do
     debug "Starting #{__MODULE__}"
 
     children = [
       worker(Server, [], restart: :temporary)
     ]
+    opts = [strategy: :simple_one_for_one]
+    {:ok, sup} = Supervisor.start_link(children, opts)
 
-    opts = [strategy: :simple_one_for_one, name: {:global, Raftex.Distributor.Supervisor}]
-    {:ok, _} = Supervisor.start_link(children, opts)
-    initial_state nil
+    initial_state {sup, nil}
   end
 
 
   # Launch
 
-  defcall start(number_of_nodes), when: is_integer(number_of_nodes) and number_of_nodes > 0 do
-    Enum.each(get_children_pids, &(true = Process.exit(&1, :shutdown)))
+  defcall start(number_of_nodes), when: is_integer(number_of_nodes) and number_of_nodes > 0, state: {sup, _} do
+    Enum.each(get_children_pids(sup), &(true = Process.exit(&1, :shutdown)))
 
-    range = 1..number_of_nodes
-    range |> Enum.each(&Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [&1]))
-    range |> Enum.each(
-      &Server.propagate(
-        create_name_from_number(&1),
-        Enum.reject(range, fn n -> n == &1 end) |> Enum.map(fn n -> create_name_from_number(n) end)
-      )
-    )
-    range |> Enum.each(&Server.resume(create_name_from_number(&1)))
-    set_and_reply number_of_nodes, :ok
+    range = range(number_of_nodes)
+    range |> Enum.each(&Supervisor.start_child(sup, [&1]))
+    range |> Enum.each(&Server.propagate(&1, Enum.reject(range, fn n -> n == &1 end)))
+    range |> Enum.each(&Server.resume(&1))
+    set_and_reply {sup, number_of_nodes}, :ok
   end
 
 
-  defcall get_number_of_nodes, state: number_of_nodes do
+  defcall get_number_of_nodes, state: {_, number_of_nodes} do
     reply number_of_nodes
+  end
+
+
+  defcall apply_command(command), when: is_function(command), state: {sup, _} do
+    server = List.first(get_children_pids(sup))
+    reply Server.serve_client_request(server, command)
+  end
+
+
+  defcall apply_command(leaderPid, command), when: is_function(command) do
+    reply Server.serve_client_request(leaderPid, command)
   end
 
 
   # Manipulate the nodes
 
-  defcall resume(number), when: is_integer(number) and number >= 1, state: number_of_nodes do
-    case Supervisor.start_child({:global, Raftex.Distributor.Supervisor}, [number]) do
+  defcall resume(number), when: is_integer(number) and number >= 1, state: {sup, number_of_nodes} do
+    name = create_name_from_number(number)
+    case Supervisor.start_child(sup, [name]) do
       {:ok, _} ->
-        Server.propagate(
-          create_name_from_number(number),
-          Enum.reject(1..number_of_nodes, fn n -> n == number end) |> Enum.map(fn n -> create_name_from_number(n) end)
-        )
-        Server.resume(create_name_from_number(number))
+        Server.propagate(name, Enum.reject(range(number_of_nodes), &(&1 == name)))
+        Server.resume(name)
+        reply :ok
       other ->
-        other
-    end
-    reply :ok
-  end
-
-
-  def kill_leaders do
-    matches =
-      Enum.filter(get_children_pids, &({stateName, _} = :sys.get_state(&1)) && stateName == :leader) |>  
-      Enum.map(&Process.exit(&1, :kill)) |> Enum.count
-
-    case matches do
-      0 -> :error
-      _ -> :ok
+        reply other
     end
   end
 
 
-  def kill_any_follower do
-    first = Enum.find(get_children_pids, &({stateName, _} = :sys.get_state(&1)) && stateName == :follower)
+  defcall kill_leaders, state: {sup, _} do
+    case get_leaders(sup) |> Enum.map(&Process.exit(&1, :kill)) |> Enum.count do
+      0 -> reply :error
+      _ -> reply :ok
+    end
+  end
+
+
+  defcall kill_any_follower, state: {sup, _} do
+    first = List.first(get_followers(sup))
     case first do
-      nil -> :error
-      pid -> Process.exit(pid, :kill)
+      nil -> reply :error
+      pid -> reply Process.exit(pid, :kill)
     end
   end
 
 
-  def get_all_servers do
-    Supervisor.which_children({:global, Raftex.Distributor.Supervisor}) |>
+  defcall get_all_servers, state: {sup, _} do
+    children = Supervisor.which_children(sup) |>
       Enum.map(fn {_, pid, _, _} -> pid end) |> Enum.map(&:sys.get_state(&1))
+    reply children
+  end
+
+
+  defp get_leaders(sup) do
+    Enum.filter(get_children_pids(sup), &({stateName, _} = :sys.get_state(&1)) && stateName == :leader)
+  end
+
+
+  defp get_followers(sup) do
+    Enum.filter(get_children_pids(sup), &({stateName, _} = :sys.get_state(&1)) && stateName == :follower)
+  end
+
+
+  def range(number_of_nodes) when is_integer(number_of_nodes) and number_of_nodes > 0 do
+    for i <- 1..number_of_nodes do create_name_from_number(i) end
   end
 
 
@@ -92,8 +108,8 @@ defmodule Distributor do
   end
 
 
-  defp get_children_pids do
-    Enum.map(Supervisor.which_children({:global, Raftex.Distributor.Supervisor}), fn {_, pid, _, _} -> pid end)
+  defp get_children_pids(sup) do
+    Enum.map(Supervisor.which_children(sup), fn {_, pid, _, _} -> pid end)
   end
 
 end

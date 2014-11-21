@@ -12,23 +12,33 @@ defmodule Election do
         t(stateData, stateName, "incrementing current term to #{newStateData.currentTerm}")
 
         newStateData = %StateData{newStateData | :votedFor => stateData.name, :voteCount => 1}
-        t(newStateData, stateName, "voting for itself")
 
-        t(newStateData, stateName, "sending out vote requests to other nodes")
         Enum.each(
             newStateData.allServers,
-            &Server.request_vote(&1, newStateData.currentTerm, stateData.name, Enum.count(newStateData.log), List.last(newStateData.log)[:term])
+            &Server.send_vote(
+                &1,
+                newStateData.currentTerm,
+                stateData.name,
+                Enum.count(newStateData.log),
+                case List.last(newStateData.log) do
+                    nil -> nil
+                    entry -> entry.term
+                end
+            )
         )
         t(newStateData, stateName, "transitioning to candidate state")
         {:next_state, :candidate, newStateData, TimeHelper.generate_random_election_timeout}
     end
 
 
-    def request_vote(term, candidateName, lastLogIndex, lastLogTerm, stateName, stateData) do
+    def send_vote(term, candidateName, lastLogIndex, lastLogTerm, stateName, stateData) do
         t(stateData, stateName, "Received incoming request to vote for #{inspect candidateName}")
 
         myLastLogIndex = Enum.count(stateData.log)
-        myLastLogTerm  = List.last(stateData.log)[:term]
+        myLastLogTerm  = case List.last(stateData.log) do 
+            nil   -> nil
+            entry -> entry.term
+        end
 
         newStateData = stateData
         if term < stateData.currentTerm do
@@ -44,7 +54,7 @@ defmodule Election do
             end
         end
 
-        Server.receive_vote(:global.whereis_name(String.to_atom to_string candidateName), stateData.currentTerm, voteGranted)
+        Server.process_vote_response(candidateName, stateData.currentTerm, voteGranted)
         {:next_state, stateName, newStateData, TimeHelper.generate_random_election_timeout}
     end
 end

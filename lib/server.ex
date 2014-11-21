@@ -3,17 +3,19 @@ defmodule Server do
     import Logger
     import DebugHelper
 
+
     # Initialization
 
-    def start_link(number) when is_integer(number) do
-        :gen_fsm.start_link({:global, String.to_atom to_string number}, __MODULE__, number, [])
+    def start_link(name) do
+        :gen_fsm.start_link(name, __MODULE__, name, [])
     end
 
 
-    def init(number) do
-        info "Starting #{inspect __MODULE__} #{inspect number}"
+    def init(name) do
+        info "Starting #{inspect __MODULE__} #{inspect name}"
         :random.seed(:erlang.now)
-        {:ok, :follower, %StateData{:name => number}}
+        {:ok, pid} = StateMachine.start_link
+        {:ok, :follower, %StateData{:name => name, :stateMachine => pid}}
     end
 
 
@@ -29,23 +31,32 @@ defmodule Server do
     end
 
 
-    def request_vote(pid, term, candidatePid, lastLogIndex, lastLogTerm) do
-        :gen_fsm.send_event(pid, {:request_vote, term, candidatePid, lastLogIndex, lastLogTerm})
+    def send_vote(pid, term, candidatePid, lastLogIndex, lastLogTerm) do
+        :gen_fsm.send_event(pid, {:send_vote, term, candidatePid, lastLogIndex, lastLogTerm})
     end
 
 
-    def receive_vote(pid, term, voteGranted) do
-        :gen_fsm.send_event(pid, {:receive_vote, term, voteGranted})
+    def process_vote_response(pid, term, voteGranted) do
+        :gen_fsm.send_event(pid, {:process_vote_response, term, voteGranted})
     end
 
+
+    def serve_client_request(pid, command) do
+        :gen_fsm.sync_send_event(pid, {:serve_client_request, command})
+    end
+
+
+    def receive_replication_ack(pid, term, success, leaderCommit, from) do
+        :gen_fsm.send_event(pid, {:receive_replication_ack, term, success, leaderCommit, from})
+    end
 
 
     # global events
 
-    def append_entries(pid, term, leaderPid, prevLogIndex, prevLogTerm, logEntries, leaderCommit) do
+    def append_entries(pid, term, leaderPid, prevLogIndex, prevLogTerm, entries, leaderCommit, from) do
         :gen_fsm.send_all_state_event(
             pid,
-            {:append_entries, term, leaderPid, prevLogIndex, prevLogTerm, logEntries, leaderCommit}
+            {:append_entries, term, leaderPid, prevLogIndex, prevLogTerm, entries, leaderCommit, from}
         )
     end
 
@@ -62,21 +73,26 @@ defmodule Server do
     end
 
 
-    def follower({:request_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
+    def follower({:send_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
         RuleHelper.check_for_outdated_term(
             term,
             stateData,
-            &Election.request_vote(term, candidatePid, lastLogIndex, lastLogTerm, :follower, &1)
+            &Election.send_vote(term, candidatePid, lastLogIndex, lastLogTerm, :follower, &1)
         )
     end
 
-    def follower({:receive_vote, term, voteGranted}, stateData) do
-        RuleHelper.check_for_outdated_term(term, stateData, &Follower.receive_vote(term, voteGranted, &1))
+    def follower({:process_vote_response, term, voteGranted}, stateData) do
+        RuleHelper.check_for_outdated_term(term, stateData, &Follower.process_vote_response(term, voteGranted, &1))
     end
 
 
     def follower(:send_append_entries, stateData) do
         Follower.send_append_entries(stateData)
+    end
+
+
+    def follower({:serve_client_request, command}, from, stateData) do
+        ClientRequest.serve_client_request(command, from, :follower, stateData)
     end
 
 
@@ -87,17 +103,17 @@ defmodule Server do
     end
 
 
-    def candidate({:request_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
+    def candidate({:send_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
         RuleHelper.check_for_outdated_term(
             term,
             stateData,
-            &Election.request_vote(term, candidatePid, lastLogIndex, lastLogTerm, :candidate, &1)
+            &Election.send_vote(term, candidatePid, lastLogIndex, lastLogTerm, :candidate, &1)
         )
     end
 
 
-    def candidate({:receive_vote, term, voteGranted}, stateData) do
-        RuleHelper.check_for_outdated_term(term, stateData, &Candidate.receive_vote(voteGranted, &1))
+    def candidate({:process_vote_response, term, voteGranted}, stateData) do
+        RuleHelper.check_for_outdated_term(term, stateData, &Candidate.process_vote_response(voteGranted, &1))
     end
 
 
@@ -106,24 +122,39 @@ defmodule Server do
     end
 
 
+    def candidate({:serve_client_request, command}, from, stateData) do
+        ClientRequest.serve_client_request(command, from, :candidate, stateData)
+    end
+
+
     # leader callbacks
 
-    def leader({:request_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
+    def leader({:send_vote, term, candidatePid, lastLogIndex, lastLogTerm}, stateData) do
         RuleHelper.check_for_outdated_term(
             term,
             stateData,
-            &Election.request_vote(term, candidatePid, lastLogIndex, lastLogTerm, :leader, &1)
+            &Election.send_vote(term, candidatePid, lastLogIndex, lastLogTerm, :leader, &1)
         )
     end
 
 
-    def leader({:receive_vote, term, voteGranted}, stateData) do
-        RuleHelper.check_for_outdated_term(term, stateData, &Leader.receive_vote(term, voteGranted, &1))
+    def leader({:process_vote_response, term, voteGranted}, stateData) do
+        RuleHelper.check_for_outdated_term(term, stateData, &Leader.process_vote_response(term, voteGranted, &1))
     end
 
 
     def leader(:send_append_entries, stateData) do
         Leader.send_append_entries(stateData)
+    end
+
+
+    def leader({:serve_client_request, command}, from, stateData) do
+        Leader.serve_client_request(command, from, :leader, stateData)
+    end
+
+
+    def leader({:receive_replication_ack, term, success, leaderCommit, from}, stateData) do
+        RuleHelper.check_for_outdated_term(term, stateData, &Leader.receive_replication_ack(success, leaderCommit, from, &1))
     end
 
 
@@ -142,11 +173,11 @@ defmodule Server do
 
 
     def handle_event(
-        {:append_entries, term, _leaderPid, prevLogIndex, prevLogTerm, _logEntries, _leaderCommit},
-        _, stateData = %StateData{}) do
+        {:append_entries, term, leaderPid, prevLogIndex, prevLogTerm, entries, leaderCommit, from},
+        stateName, stateData) do
 
         f = fn(stateData) ->
-            Global.append_entries(term, _leaderPid, prevLogIndex, prevLogTerm, _logEntries, _leaderCommit, stateData)
+            ClientRequest.append_entries(term, leaderPid, prevLogIndex, prevLogTerm, entries, leaderCommit, from, stateName, stateData)
         end
 
         RuleHelper.check_for_outdated_term(term, stateData, f)

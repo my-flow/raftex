@@ -2,6 +2,7 @@ defmodule Raftex.PageController do
   use Phoenix.Controller
 
   plug :action
+  @name :name
 
 
   def index(conn, _params) do
@@ -10,33 +11,37 @@ defmodule Raftex.PageController do
 
 
   def start(conn, params) do
-    text conn, inspect Distributor.start String.to_integer params["number"]
+    Distributor.start_link([name: @name])
+    text conn, inspect Distributor.start(@name, String.to_integer params["number"])
   end
 
 
   def kill_leaders(conn, _params) do
-    text conn, inspect Distributor.kill_leaders
+    text conn, inspect Distributor.kill_leaders(@name)
   end
 
 
   def kill_any_follower(conn, _params) do
-    text conn, inspect Distributor.kill_any_follower
+    text conn, inspect Distributor.kill_any_follower(@name)
   end
 
 
   def resume(conn, params) do
-    text conn, inspect Enum.map(params["numbers"], fn n -> Distributor.resume String.to_integer n end)
+    text conn, inspect Enum.map(params["numbers"], fn n -> Distributor.resume(@name, String.to_integer(n)) end)
   end
 
 
   def info(conn, _params) do
-    total = Distributor.get_number_of_nodes
+    total = Distributor.get_number_of_nodes(@name)
 
-    nodes = Distributor.get_all_servers |> Enum.map(
-      fn {name, data} -> 
+    nodes = Distributor.get_all_servers(@name) |> Enum.map(
+      fn {name, data} ->
+        {_, mapName} = data.name
+        mapName = String.to_integer(to_string(mapName))
+        mapId = mapName - 1
         map = %{
-          :name => data.name, 
-          :id => data.name - 1, 
+          :name => mapName,
+          :id => mapId,
           :state => name,
           :voteCount => if name == :candidate do data.voteCount else nil end
         }

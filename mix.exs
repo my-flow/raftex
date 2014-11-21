@@ -25,7 +25,7 @@ defmodule Raftex.Mixfile do
   # Type `mix help deps` for examples and options
   defp deps do
     [
-     {:exactor, "~> 1.0.0"},
+     {:exactor, "~> 2.0.0"},
      {:phoenix, git: "https://github.com/phoenixframework/phoenix.git", ref: "ad2eb6e8c3b59881226d4ba0263417914ab050dc"},
      {:cowboy, "~> 1.0"},
      {:jsex, github: "talentdeficit/jsex", tag: "v2.0.0"}

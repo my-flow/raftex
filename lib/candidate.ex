@@ -2,7 +2,7 @@ defmodule Candidate do
 
     import DebugHelper
 
-    def receive_vote(voteGranted, stateData) do
+    def process_vote_response(voteGranted, stateData) do
         voteCount = stateData.voteCount + if voteGranted do 1 else 0 end
         majority = div(1 + Enum.count(stateData.allServers), 2) + 1
         t(stateData, :candidate, "#{inspect voteCount} of #{inspect majority} required votes")
@@ -17,7 +17,7 @@ defmodule Candidate do
     end
 
 
-    def send_append_entries(stateData) do
+    def send_append_entries(_, stateData) do
         t(stateData, :candidate, "Ignoring request to append entries.")
         {:next_state, :candidate, stateData}
     end
