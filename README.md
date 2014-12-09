@@ -3,6 +3,9 @@ Raftex
 
 An implementation of the [Raft Consensus Algorithm](https://raftconsensus.github.io) in Elixir/Erlang using distributed finite state machines (`gen_fsm`).
 
+[![Build Status](https://travis-ci.org/my-flow/raftex.svg?branch=master)](https://travis-ci.org/my-flow/raftex)
+
+
 ## What is Consensus / what is Raft?
 
 From the [official website](https://raftconsensus.github.io):
