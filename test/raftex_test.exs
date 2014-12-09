@@ -14,35 +14,40 @@ defmodule RaftexTest do
   setup do
     Raftex.run :r
     :timer.sleep(TimeHelper.get_election_timeout_max)
+
+    on_exit fn ->
+      Process.exit(Process.whereis(:r), :shutdown)
+    end
   end
 
 
   test "apply a function" do
     result = case Distributor.apply_command :r, &__MODULE__.command1/0 do
-      {:noleader, pid} -> Distributor.apply_command :r, pid, &__MODULE__.command1/0
-      other -> other
+      {:noleader, pid} ->
+        Distributor.apply_command :r, pid, &__MODULE__.command1/0
+      other ->
+        other
     end
     assert(result == 2)
-    Process.exit(Process.whereis(:r), :shutdown)
   end
 
 
   test "apply two functions sequentially" do
     result1 = case Distributor.apply_command :r, &__MODULE__.command1/0 do
-      {:noleader, pid} -> Distributor.apply_command :r, pid, &__MODULE__.command1/0
-      other -> other
+      {:noleader, pid} ->
+        Distributor.apply_command :r, pid, &__MODULE__.command1/0
+      other ->
+        other
     end
-
     assert(result1 == 2)
 
-
     result2 = case Distributor.apply_command :r, &__MODULE__.command2/1 do
-      {:noleader, pid} -> Distributor.apply_command :r, pid, &__MODULE__.command2/1
-      other -> other
+      {:noleader, pid} ->
+        Distributor.apply_command :r, pid, &__MODULE__.command2/1
+      other ->
+        other
     end
-
     assert(result2 == 5)
-    Process.exit(Process.whereis(:r), :shutdown)
   end
 
 
@@ -54,29 +59,29 @@ defmodule RaftexTest do
       other ->
         other
     end
-
     assert(Task.await(task2) == 5)
-    Process.exit(Process.whereis(:r), :shutdown)
   end
 
 
   test "apply two functions sequentially and crash leader" do
     result1 = case Distributor.apply_command :r, &__MODULE__.command1/0 do
-      {:noleader, pid} -> Distributor.apply_command :r, pid, &__MODULE__.command1/0
-      other -> other
+      {:noleader, pid} ->
+        Distributor.apply_command :r, pid, &__MODULE__.command1/0
+      other ->
+        other
     end
-
     assert(result1 == 2)
 
     Distributor.kill_leaders(:r)
     :timer.sleep(TimeHelper.get_election_timeout_max)
 
     result2 = case Distributor.apply_command :r, &__MODULE__.command2/1 do
-      {:noleader, pid} -> Distributor.apply_command :r, pid, &__MODULE__.command2/1
-      other -> other
+      {:noleader, pid} ->
+        Distributor.apply_command :r, pid, &__MODULE__.command2/1
+      other ->
+        other
     end
 
-    Process.exit(Process.whereis(:r), :shutdown)
     assert(result2 == 5)
   end
 end
