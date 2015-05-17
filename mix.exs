@@ -7,7 +7,8 @@ defmodule Raftex.Mixfile do
      elixir: "~> 1.0",
      elixirc_paths: ["lib", "web"],
      compilers: [:phoenix] ++ Mix.compilers,
-     deps: deps]
+     deps: deps,
+     test_coverage: [tool: ExCoveralls]]
   end
 
   # Configuration for the OTP application
@@ -28,7 +29,8 @@ defmodule Raftex.Mixfile do
      {:exactor, "~> 2.0.0"},
      {:phoenix, github: "phoenixframework/phoenix", tag: "v0.6.1"},
      {:cowboy, "~> 1.0"},
-     {:jsex, github: "talentdeficit/jsex", tag: "v2.0.0"}
+     {:exjsx, "~> 3.0"},
+     {:excoveralls, "~> 0.3", only: [:dev, :test]}
     ]
   end
 end

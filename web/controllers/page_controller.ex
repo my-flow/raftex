@@ -60,7 +60,7 @@ defmodule Raftex.PageController do
       |> Enum.sort(&(&1.source < &2.source || (&1.source == &2.source && &1.target < &2.target))
     )
 
-    text conn, JSEX.encode!(%{:total => total, :nodes => nodes, :links => links})
+    text conn, JSX.encode!(%{:total => total, :nodes => nodes, :links => links})
   end
 
   def not_found(conn, _params) do

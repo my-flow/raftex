@@ -4,7 +4,7 @@ Raftex
 An implementation of the [Raft Consensus Algorithm](https://raftconsensus.github.io) in Elixir/Erlang using distributed finite state machines (`gen_fsm`).
 
 [![Build Status](https://travis-ci.org/my-flow/raftex.svg?branch=master)](https://travis-ci.org/my-flow/raftex)
-
+[![Coverage Status](https://coveralls.io/repos/my-flow/raftex/badge.svg?branch=master)](https://coveralls.io/r/my-flow/raftex?branch=master)
 
 ## What is Consensus / what is Raft?
 
@@ -30,6 +30,6 @@ From the [official website](https://raftconsensus.github.io):
 
 ## Copyright & License
 
-Copyright (c) 2014 [Florian J. Breunig](http://www.my-flow.com)
+Copyright (c) 2014-2015 [Florian J. Breunig](http://www.my-flow.com)
 
 Licensed under MIT, see LICENSE file.
