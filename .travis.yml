@@ -1,8 +1,7 @@
+sudo: false
 language: elixir
 elixir:
   - 1.0.4
 otp_release:
   - 17.4
-script:
-  - mix test
 after_script: "mix do compile, coveralls.travis"
